@@ -1,0 +1,9 @@
+{
+    "name": "connexus/api",
+    "description": "Connexus Backend API for serving dynamic content",
+    "type": "project",
+    "require": {
+        "php": ">=7.4",
+        "mongodb/mongodb": "^1.21"
+    }
+}
