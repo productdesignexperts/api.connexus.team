@@ -133,3 +133,25 @@ function format_document($doc) {
 function format_documents($docs) {
     return array_map('format_document', $docs);
 }
+
+/**
+ * Resolve image URL to full absolute URL
+ * Checks if file exists on myococ.connexus.team server
+ * If found, returns full https URL; otherwise returns original path
+ */
+function resolve_image_url($url) {
+    if (empty($url)) {
+        return '';
+    }
+
+    // If it's a relative path starting with /, check if file exists on myococ server
+    if (str_starts_with($url, '/')) {
+        $local_path = '/var/www/myococ.connexus.team/public_html' . $url;
+        if (file_exists($local_path)) {
+            return 'https://myococ.connexus.team' . $url;
+        }
+    }
+
+    // File not found on myococ or already an absolute URL, return as-is
+    return $url;
+}

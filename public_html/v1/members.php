@@ -8,6 +8,23 @@
 
 require_api_key();
 
+/**
+ * Format member document with resolved image URLs
+ */
+function format_member($doc) {
+    $formatted = format_document($doc);
+
+    // Resolve image URLs for photo fields
+    if (!empty($formatted['photo'])) {
+        $formatted['photo'] = resolve_image_url($formatted['photo']);
+    }
+    if (!empty($formatted['company_photo'])) {
+        $formatted['company_photo'] = resolve_image_url($formatted['company_photo']);
+    }
+
+    return $formatted;
+}
+
 $db = connexus_db();
 $id = $_REQUEST['_id'] ?? null;
 
@@ -34,7 +51,7 @@ if ($id) {
         }
 
         json_response([
-            'data' => format_document($member)
+            'data' => format_member($member)
         ]);
     } catch (Exception $e) {
         json_error('Invalid member ID', 400);
@@ -71,7 +88,7 @@ $members = iterator_to_array($cursor, false);
 $total = $db->selectCollection(COL_USERS)->countDocuments($filter);
 
 json_response([
-    'data' => format_documents($members),
+    'data' => array_map('format_member', $members),
     'meta' => [
         'total' => $total,
         'limit' => $pagination['limit'],

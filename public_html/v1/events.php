@@ -65,7 +65,7 @@ function format_event_for_page($doc) {
     // Only include thumbnail if image exists
     if (!empty($event['image'])) {
         $result['thumbnail'] = [
-            'src' => $event['image'],
+            'src' => resolve_image_url($event['image']),
             'alt' => ($event['title'] ?? 'Event') . ' image'
         ];
     }

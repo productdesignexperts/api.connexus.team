@@ -34,8 +34,8 @@ function format_featured_event($doc) {
     $price = $event['price'] ?? 'UNKNOWN';
     $ctaLabel = ($price === 'Free' || $price === 'UNKNOWN') ? 'RSVP' : "Register ({$price})";
 
-    // Image - use default if not present
-    $imageSrc = !empty($event['image']) ? $event['image'] : DEFAULT_EVENT_IMAGE;
+    // Image - use default if not present, resolve to full URL if on myococ server
+    $imageSrc = !empty($event['image']) ? resolve_image_url($event['image']) : resolve_image_url(DEFAULT_EVENT_IMAGE);
     $imageAlt = ($event['title'] ?? 'Event') . ' image';
 
     return [
@@ -84,7 +84,7 @@ if (empty($events)) {
             'location' => 'UNKNOWN',
             'description' => 'No events available.',
             'image' => [
-                'src' => DEFAULT_EVENT_IMAGE,
+                'src' => resolve_image_url(DEFAULT_EVENT_IMAGE),
                 'alt' => 'Event placeholder'
             ],
             'primary_cta' => [

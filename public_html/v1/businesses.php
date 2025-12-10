@@ -29,7 +29,7 @@ function format_business($doc) {
     return [
         'id' => $formatted['id'] ?? '',
         'businessName' => $formatted['company_name'] ?? $formatted['company'] ?? '',
-        'logoUrl' => $formatted['company_photo'] ?? '',
+        'logoUrl' => resolve_image_url($formatted['company_photo'] ?? ''),
         'category' => $formatted['business_category'] ?? '',
         'addressLine1' => $formatted['company_address'] ?? '',
         'city' => $formatted['company_city'] ?? '',
