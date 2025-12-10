@@ -2,6 +2,8 @@
 
 > **IMPORTANT**: This is a **PRIVATE, PROPRIETARY** backend repository. It is NOT the public client library.
 
+> **READ FIRST**: For complete system understanding, see **[ARCHITECTURE.md](./ARCHITECTURE.md)** which contains the full platform architecture, data flow diagrams, and all repository/URL references.
+
 ## Repository Distinction
 
 | Repository | Purpose | Visibility |
