@@ -330,6 +330,61 @@ All repositories and server directories are owned/accessible by user `vince`.
 
 ---
 
+## Server & Log Files Reference
+
+### Apache Log Files
+
+All logs are in `/var/log/apache2/`:
+
+| Site | Access Log | Error Log |
+|------|------------|-----------|
+| **api.connexus.team** | `/var/log/apache2/api.connexus.team_access.log` | `/var/log/apache2/api.connexus.team_error.log` |
+| **myococ.connexus.team** | `/var/log/apache2/myococ.connexus.team_access.log` | `/var/log/apache2/myococ.connexus.team_error.log` |
+| **ococsite.connexus.team** | `/var/log/apache2/ococsite.connexus.team_access.log` | `/var/log/apache2/ococsite.connexus.team_error.log` |
+
+### Checking Logs
+
+```bash
+# View recent errors for API
+tail -50 /var/log/apache2/api.connexus.team_error.log
+
+# View recent errors for dashboard/admin
+tail -50 /var/log/apache2/myococ.connexus.team_error.log
+
+# View recent errors for public site
+tail -50 /var/log/apache2/ococsite.connexus.team_error.log
+
+# Follow logs in real-time
+tail -f /var/log/apache2/api.connexus.team_error.log
+```
+
+### Main Site URL
+
+- **Main Platform**: https://connexus.team (redirects/aliases may apply)
+
+---
+
+## Complete URL Quick Reference
+
+| URL | Purpose | Log Files |
+|-----|---------|-----------|
+| https://connexus.team | Main platform site | - |
+| https://api.connexus.team | Backend API | `api.connexus.team_*.log` |
+| https://api.connexus.team/v1/ping | API health check | `api.connexus.team_*.log` |
+| https://api.connexus.team/v1/events | Events endpoint | `api.connexus.team_*.log` |
+| https://api.connexus.team/v1/members | Members endpoint | `api.connexus.team_*.log` |
+| https://api.connexus.team/v1/businesses | Businesses endpoint | `api.connexus.team_*.log` |
+| https://api.connexus.team/v1/discounts | Discounts endpoint | `api.connexus.team_*.log` |
+| https://api.connexus.team/v1/announcements | Announcements endpoint | `api.connexus.team_*.log` |
+| https://ococsite.connexus.team | Public website | `ococsite.connexus.team_*.log` |
+| https://ococsite.connexus.team/connexus_api/src/connexus-api.js | Public JS library | `ococsite.connexus.team_*.log` |
+| https://ococsite.connexus.team/admin | Admin panel | `ococsite.connexus.team_*.log` |
+| https://myococ.connexus.team | Member dashboard | `myococ.connexus.team_*.log` |
+| https://myococ.connexus.team/login.php | Member login | `myococ.connexus.team_*.log` |
+| https://myococ.connexus.team/dashboard | Dashboard home | `myococ.connexus.team_*.log` |
+
+---
+
 ## Document History
 
 | Date | Change |
