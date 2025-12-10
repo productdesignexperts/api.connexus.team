@@ -27,3 +27,6 @@ define('COL_GROUP_EVENTS', 'group_events');
 
 // API Keys collection (new for this API)
 define('COL_API_KEYS', 'api_keys');
+
+// Contact form submissions
+define('COL_CONTACT_SUBMISSIONS', 'contact_submissions');
