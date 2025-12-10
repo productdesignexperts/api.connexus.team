@@ -6,7 +6,7 @@
  * GET /v1/events/:id - Get single event
  */
 
-require_api_key();
+// Public endpoint - no API key required for read-only event data
 
 $db = connexus_db();
 $id = $_REQUEST['_id'] ?? null;
