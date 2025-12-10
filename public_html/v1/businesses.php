@@ -7,6 +7,7 @@
  *
  * Note: Businesses are derived from member profiles that have business info.
  * This provides a business-focused view of the member directory.
+ * Only returns businesses where show_in_business_directory is true.
  */
 
 require_api_key();
@@ -14,12 +15,33 @@ require_api_key();
 $db = connexus_db();
 $id = $_REQUEST['_id'] ?? null;
 
-// Fields to include for business listings
-$projection = [
-    'password_hash' => 0,
-    'api_token' => 0,
-    'email' => 0
-];
+/**
+ * Format a user document as a business for the directory
+ * Maps internal fields to the expected business format
+ */
+function format_business($doc) {
+    if (!$doc) return null;
+
+    $formatted = format_document($doc);
+
+    // Map to business directory format
+    // Use company_* fields if available, fall back to legacy fields
+    return [
+        'id' => $formatted['id'] ?? '',
+        'businessName' => $formatted['company_name'] ?? $formatted['company'] ?? '',
+        'logoUrl' => $formatted['company_photo'] ?? '',
+        'category' => $formatted['business_category'] ?? '',
+        'addressLine1' => $formatted['company_address'] ?? '',
+        'city' => $formatted['company_city'] ?? '',
+        'state' => $formatted['company_state'] ?? '',
+        'zip' => $formatted['company_zip'] ?? '',
+        'phone' => $formatted['company_phone'] ?? $formatted['phone'] ?? '',
+        'websiteUrl' => $formatted['company_website'] ?? '',
+        'description' => $formatted['company_description'] ?? $formatted['business_description'] ?? '',
+        // Include contact name for reference
+        'contactName' => trim(($formatted['first_name'] ?? '') . ' ' . ($formatted['last_name'] ?? ''))
+    ];
+}
 
 // Single business
 if ($id) {
@@ -28,9 +50,8 @@ if ($id) {
             [
                 '_id' => new MongoDB\BSON\ObjectId($id),
                 'deleted' => ['$ne' => true],
-                'company' => ['$exists' => true, '$ne' => '']
-            ],
-            ['projection' => $projection]
+                'show_in_business_directory' => true
+            ]
         );
 
         if (!$business) {
@@ -38,19 +59,19 @@ if ($id) {
         }
 
         json_response([
-            'data' => format_document($business)
+            'data' => format_business($business)
         ]);
     } catch (Exception $e) {
         json_error('Invalid business ID', 400);
     }
 }
 
-// List businesses (members with company info)
+// List businesses (members with company info who opted into directory)
 $pagination = get_pagination();
 
 $filter = [
     'deleted' => ['$ne' => true],
-    'company' => ['$exists' => true, '$ne' => '']
+    'show_in_business_directory' => true
 ];
 
 // Optional category filter
@@ -59,11 +80,19 @@ if ($category !== '') {
     $filter['business_category'] = new MongoDB\BSON\Regex($category, 'i');
 }
 
+// Optional city filter
+$city = trim($_GET['city'] ?? '');
+if ($city !== '') {
+    $filter['company_city'] = new MongoDB\BSON\Regex($city, 'i');
+}
+
 // Optional search query
 $q = trim($_GET['q'] ?? '');
 if ($q !== '') {
     $filter['$or'] = [
         ['company' => new MongoDB\BSON\Regex($q, 'i')],
+        ['company_name' => new MongoDB\BSON\Regex($q, 'i')],
+        ['company_description' => new MongoDB\BSON\Regex($q, 'i')],
         ['business_description' => new MongoDB\BSON\Regex($q, 'i')],
         ['business_category' => new MongoDB\BSON\Regex($q, 'i')]
     ];
@@ -72,18 +101,21 @@ if ($q !== '') {
 $cursor = $db->selectCollection(COL_USERS)->find(
     $filter,
     [
-        'projection' => $projection,
-        'sort' => ['company' => 1],
+        'sort' => ['company_name' => 1, 'company' => 1],
         'skip' => $pagination['offset'],
         'limit' => $pagination['limit']
     ]
 );
 
-$businesses = iterator_to_array($cursor, false);
+$businesses = [];
+foreach ($cursor as $doc) {
+    $businesses[] = format_business($doc);
+}
+
 $total = $db->selectCollection(COL_USERS)->countDocuments($filter);
 
 json_response([
-    'data' => format_documents($businesses),
+    'data' => $businesses,
     'meta' => [
         'total' => $total,
         'limit' => $pagination['limit'],
