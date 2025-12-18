@@ -12,6 +12,7 @@
  */
 
 require_once __DIR__ . '/../../src/helpers.php';
+require_once '/var/www/myococ.connexus.team/public_html/sms_helper.php';
 
 set_cors_headers();
 
@@ -288,6 +289,14 @@ if ($existingUser) {
     try {
         $result = $usersCollection->insertOne($newUser);
         $memberId = (string)$result->getInsertedId();
+
+        // Notify super admins of new signup via SMS
+        notify_admins_of_signup([
+            'first_name' => $firstName,
+            'last_name' => $lastName,
+            'company_name' => $businessName,
+            'phone' => $contactMobilePhone ?: $businessPhone
+        ]);
     } catch (MongoDB\Driver\Exception\BulkWriteException $e) {
         // Duplicate key error
         if ($e->getCode() === 11000) {
