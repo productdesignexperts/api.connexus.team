@@ -99,10 +99,27 @@ function get_pagination($default_limit = 20, $max_limit = 100) {
  * Converts ObjectId to string, UTCDateTime to ISO string
  */
 function format_document($doc) {
-    if (!$doc) {
+    // Handle null/empty
+    if ($doc === null) {
         return null;
     }
 
+    // Handle scalar values (strings, ints, bools, etc.) - return as-is
+    if (is_scalar($doc)) {
+        return $doc;
+    }
+
+    // Handle ObjectId directly
+    if ($doc instanceof MongoDB\BSON\ObjectId) {
+        return (string) $doc;
+    }
+
+    // Handle UTCDateTime directly
+    if ($doc instanceof MongoDB\BSON\UTCDateTime) {
+        return $doc->toDateTime()->format('c');
+    }
+
+    // Handle arrays and BSON arrays/documents
     $result = [];
     foreach ($doc as $key => $value) {
         if ($value instanceof MongoDB\BSON\ObjectId) {
