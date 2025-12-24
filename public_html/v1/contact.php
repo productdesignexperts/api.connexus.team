@@ -11,6 +11,7 @@
  */
 
 require_once __DIR__ . '/../../src/helpers.php';
+require_once __DIR__ . '/../../src/sms_helper.php';
 
 set_cors_headers();
 
@@ -120,6 +121,14 @@ if ($existingUser) {
 
     try {
         $usersCollection->insertOne($newUser);
+
+        // Notify super admins of new signup via SMS
+        notify_admins_of_signup([
+            'first_name' => $firstName,
+            'last_name' => $lastName,
+            'company_name' => $businessName,
+            'phone' => $phone
+        ], 'Contact Form');
 
         json_response([
             'success' => true,
