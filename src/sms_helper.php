@@ -180,3 +180,84 @@ function notify_admins_of_signup($newUser, $source = 'Website') {
 
     return $results;
 }
+
+/**
+ * Notify all super admins via SMS when a contact form is submitted
+ *
+ * @param array $submission Array with keys: first_name, last_name, company_name, email, message
+ * @param bool $existingUser Whether this is from an existing user
+ * @return array ['sent' => int, 'failed' => int, 'errors' => array]
+ */
+function notify_admins_of_contact_form($submission, $existingUser = false) {
+    $results = ['sent' => 0, 'failed' => 0, 'errors' => []];
+
+    // Use direct MongoDB driver
+    $MONGO_DB = getenv('OCOC_DB_NAME') ?: 'ococ_portal';
+    $mgr = sms_mongo_manager();
+
+    // Find all super admins with valid phone numbers
+    $query = new MongoDB\Driver\Query([
+        'is_super_admin' => true,
+        'phone' => ['$exists' => true, '$ne' => '']
+    ]);
+    $admins = $mgr->executeQuery("$MONGO_DB.users", $query);
+
+    // Build the notification message
+    $firstName = $submission['first_name'] ?? 'N/A';
+    $lastName = $submission['last_name'] ?? 'N/A';
+    $companyName = $submission['company_name'] ?? 'N/A';
+    $email = $submission['email'] ?? 'N/A';
+    $userMessage = $submission['message'] ?? '';
+
+    $message = "OCOC Contact Form Submission\n\n";
+    $message .= "Name: {$firstName} {$lastName}\n";
+    if (!empty($companyName) && $companyName !== 'N/A') {
+        $message .= "Company: {$companyName}\n";
+    }
+    $message .= "Email: {$email}\n";
+    if ($existingUser) {
+        $message .= "(Existing member)\n";
+    }
+    if (!empty($userMessage)) {
+        // Truncate message if too long
+        $truncatedMsg = strlen($userMessage) > 200 ? substr($userMessage, 0, 200) . '...' : $userMessage;
+        $message .= "\nMessage:\n{$truncatedMsg}";
+    }
+
+    foreach ($admins as $admin) {
+        $adminPhone = preg_replace('/\D+/', '', (string)($admin->phone ?? ''));
+
+        // Skip if no valid phone number
+        if (strlen($adminPhone) !== 10) {
+            continue;
+        }
+
+        $result = send_sms($adminPhone, $message, 'OCOC Contact Form', false, 'contact_form_notification');
+
+        if ($result['success']) {
+            $results['sent']++;
+        } else {
+            $results['failed']++;
+            $results['errors'][] = [
+                'admin' => $admin->email ?? 'unknown',
+                'error' => $result['error']
+            ];
+        }
+    }
+
+    // Log the notification attempt
+    sms_log([
+        'type' => 'admin_contact_form_notification',
+        'existing_user' => $existingUser,
+        'submission' => [
+            'first_name' => $firstName,
+            'last_name' => $lastName,
+            'company_name' => $companyName,
+            'email' => $email,
+            'message' => $userMessage
+        ],
+        'results' => $results
+    ]);
+
+    return $results;
+}

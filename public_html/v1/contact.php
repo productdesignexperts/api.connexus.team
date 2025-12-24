@@ -87,6 +87,15 @@ if ($existingUser) {
         ['$set' => ['notification_preferences' => $currentPrefs]]
     );
 
+    // Notify admins of contact form submission
+    notify_admins_of_contact_form([
+        'first_name' => $firstName,
+        'last_name' => $lastName,
+        'company_name' => $businessName,
+        'email' => $email,
+        'message' => $message
+    ], true);
+
     json_response([
         'success' => true,
         'message' => 'Thank you for contacting us! We will be in touch shortly.',
@@ -129,6 +138,15 @@ if ($existingUser) {
             'company_name' => $businessName,
             'phone' => $phone
         ], 'Contact Form');
+
+        // Also notify about the contact form submission with message
+        notify_admins_of_contact_form([
+            'first_name' => $firstName,
+            'last_name' => $lastName,
+            'company_name' => $businessName,
+            'email' => $email,
+            'message' => $message
+        ], false);
 
         json_response([
             'success' => true,
