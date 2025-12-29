@@ -24,20 +24,66 @@ function format_business($doc) {
 
     $formatted = format_document($doc);
 
+    // Process company_photos array - resolve each URL
+    $photos = [];
+    if (!empty($formatted['company_photos']) && is_array($formatted['company_photos'])) {
+        foreach ($formatted['company_photos'] as $photo) {
+            $resolved = resolve_image_url($photo);
+            if ($resolved) {
+                $photos[] = $resolved;
+            }
+        }
+    }
+
+    // Process social media - ensure proper format
+    $socialMedia = null;
+    if (!empty($formatted['social_media']) && is_array($formatted['social_media'])) {
+        $socialMedia = [
+            'facebook' => $formatted['social_media']['facebook'] ?? '',
+            'instagram' => $formatted['social_media']['instagram'] ?? '',
+            'x' => $formatted['social_media']['x'] ?? '',
+            'linkedin' => $formatted['social_media']['linkedin'] ?? '',
+            'youtube' => $formatted['social_media']['youtube'] ?? ''
+        ];
+        // Only include if at least one has a value
+        $hasValue = false;
+        foreach ($socialMedia as $val) {
+            if (!empty($val)) {
+                $hasValue = true;
+                break;
+            }
+        }
+        if (!$hasValue) {
+            $socialMedia = null;
+        }
+    }
+
+    // Process business hours
+    $businessHours = null;
+    if (!empty($formatted['business_hours']) && is_array($formatted['business_hours'])) {
+        $businessHours = $formatted['business_hours'];
+    }
+
     // Map to business directory format
     // Use company_* fields if available, fall back to legacy fields
     return [
         'id' => $formatted['id'] ?? '',
         'businessName' => $formatted['company_name'] ?? $formatted['company'] ?? '',
         'logoUrl' => resolve_image_url($formatted['company_photo'] ?? ''),
+        'photos' => $photos,
         'category' => $formatted['business_category'] ?? '',
         'addressLine1' => $formatted['company_address'] ?? '',
         'city' => $formatted['company_city'] ?? '',
         'state' => $formatted['company_state'] ?? '',
         'zip' => $formatted['company_zip'] ?? '',
         'phone' => $formatted['company_phone'] ?? $formatted['phone'] ?? '',
+        'email' => $formatted['company_email'] ?? '',
         'websiteUrl' => $formatted['company_website'] ?? '',
         'description' => $formatted['company_description'] ?? $formatted['business_description'] ?? '',
+        'videoUrl' => $formatted['video_url'] ?? '',
+        'faqs' => $formatted['business_faqs'] ?? '',
+        'socialMedia' => $socialMedia,
+        'businessHours' => $businessHours,
         // Include contact name for reference
         'contactName' => trim(($formatted['first_name'] ?? '') . ' ' . ($formatted['last_name'] ?? ''))
     ];
