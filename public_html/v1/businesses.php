@@ -96,7 +96,9 @@ if ($id) {
             [
                 '_id' => new MongoDB\BSON\ObjectId($id),
                 'deleted' => ['$ne' => true],
-                'show_in_business_directory' => true
+                'show_in_business_directory' => true,
+                // Only show paid members (supports both field names)
+                '$or' => [['paid' => true], ['is_paid' => true]]
             ]
         );
 
@@ -132,16 +134,24 @@ if ($city !== '') {
     $filter['company_city'] = new MongoDB\BSON\Regex($city, 'i');
 }
 
+// Paid filter - only show members where paid or is_paid is true
+$paidFilter = ['$or' => [['paid' => true], ['is_paid' => true]]];
+
 // Optional search query
 $q = trim($_GET['q'] ?? '');
 if ($q !== '') {
-    $filter['$or'] = [
+    // Combine paid filter with search using $and
+    $searchFilter = ['$or' => [
         ['company' => new MongoDB\BSON\Regex($q, 'i')],
         ['company_name' => new MongoDB\BSON\Regex($q, 'i')],
         ['company_description' => new MongoDB\BSON\Regex($q, 'i')],
         ['business_description' => new MongoDB\BSON\Regex($q, 'i')],
         ['business_category' => new MongoDB\BSON\Regex($q, 'i')]
-    ];
+    ]];
+    $filter['$and'] = [$paidFilter, $searchFilter];
+} else {
+    // No search, just apply paid filter
+    $filter['$or'] = $paidFilter['$or'];
 }
 
 $cursor = $db->selectCollection(COL_USERS)->find(
