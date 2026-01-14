@@ -116,10 +116,11 @@ function notify_admins_of_signup($newUser, $source = 'Website') {
     $MONGO_DB = getenv('OCOC_DB_NAME') ?: 'ococ_portal';
     $mgr = sms_mongo_manager();
 
-    // Find all super admins with valid phone numbers
+    // Find all super admins with valid phone numbers (exclude deleted users)
     $query = new MongoDB\Driver\Query([
         'is_super_admin' => true,
-        'phone' => ['$exists' => true, '$ne' => '']
+        'phone' => ['$exists' => true, '$ne' => ''],
+        'deleted' => ['$ne' => true]
     ]);
     $admins = $mgr->executeQuery("$MONGO_DB.users", $query);
 
@@ -195,10 +196,11 @@ function notify_admins_of_contact_form($submission, $existingUser = false) {
     $MONGO_DB = getenv('OCOC_DB_NAME') ?: 'ococ_portal';
     $mgr = sms_mongo_manager();
 
-    // Find all super admins with valid phone numbers
+    // Find all super admins with valid phone numbers (exclude deleted users)
     $query = new MongoDB\Driver\Query([
         'is_super_admin' => true,
-        'phone' => ['$exists' => true, '$ne' => '']
+        'phone' => ['$exists' => true, '$ne' => ''],
+        'deleted' => ['$ne' => true]
     ]);
     $admins = $mgr->executeQuery("$MONGO_DB.users", $query);
 
