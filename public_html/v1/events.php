@@ -54,7 +54,7 @@ function format_event_for_page($doc) {
         'repeat_weekday' => $event['repeat_weekday'] ?? null,
         'primary_cta' => [
             'label' => $ctaLabel,
-            'href' => '/event-detail-page.php?id=' . ($event['id'] ?? ''),
+            'href' => '/event-register.php?id=' . ($event['id'] ?? ''),
         ],
         'secondary_cta' => [
             'label' => 'Details',
