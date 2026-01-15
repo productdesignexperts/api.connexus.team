@@ -42,6 +42,31 @@ function set_cors_headers() {
 }
 
 /**
+ * Set CORS headers for auth endpoints (with credentials support)
+ */
+function set_auth_cors_headers() {
+    $allowed_origins = [
+        'https://orlandochamberofcommerce.com',
+        'https://www.orlandochamberofcommerce.com',
+        'https://my.orlandochamberofcommerce.com'
+    ];
+    $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+    if (in_array($origin, $allowed_origins)) {
+        header('Access-Control-Allow-Origin: ' . $origin);
+        header('Access-Control-Allow-Credentials: true');
+    }
+    header('Access-Control-Allow-Methods: POST, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type');
+
+    // Handle preflight requests
+    if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+        http_response_code(204);
+        exit;
+    }
+}
+
+/**
  * Extract API key from request
  */
 function get_api_key() {

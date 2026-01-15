@@ -30,3 +30,9 @@ define('COL_API_KEYS', 'api_keys');
 
 // Contact form submissions
 define('COL_CONTACT_SUBMISSIONS', 'contact_submissions');
+
+// Auth collections
+define('COL_PASSWORD_RESETS', 'password_resets');
+define('COL_AUTH_TOKENS', 'auth_tokens');
+define('COL_REMEMBER_TOKENS', 'remember_tokens');
+define('COL_LOGIN_EVENTS', 'login_events');
